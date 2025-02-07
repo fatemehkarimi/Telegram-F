@@ -4,7 +4,7 @@ import React, { type TeactNode } from "../../../lib/teact/teact";
 class Node {
   private isClosed: boolean = false;
   constructor(
-    public markdown: "bold" | "italic" | "breakthrough" | "text",
+    public markdown: "bold" | "italic" | "breakthrough" | "code" | "text",
     public children: (Node | string)[] | null
   ) {
     if (markdown == "text") this.isClosed = true;
@@ -93,6 +93,12 @@ class Node {
         ) : (
           `<del>${childrenResult}</del>`
         );
+      case "code":
+        return isJSX ? (
+          <code>{childrenResult}</code>
+        ) : (
+          `<code>${childrenResult}</code>`
+        );
       default:
         return isJSX ? <>{childrenResult}</> : `${childrenResult}`;
     }
@@ -106,6 +112,8 @@ class Node {
         return ITALIC;
       case "breakthrough":
         return BREAKTHROUGH;
+      case "code":
+        return CODE;
       default:
         return "";
     }
@@ -115,7 +123,8 @@ class Node {
 const BOLD = "**";
 const ITALIC = "__";
 const BREAKTHROUGH = "~~";
-const DELIMITERS = [BOLD, ITALIC, BREAKTHROUGH];
+const CODE = "`";
+const DELIMITERS = [BOLD, ITALIC, BREAKTHROUGH, CODE];
 export function renderMarkdown(
   text: string,
   type: "html" | "jsx",
@@ -126,14 +135,14 @@ export function renderMarkdown(
   const trees: Node[] = [];
   let currentTree: Node | undefined = undefined;
   for (let i = 0; i < text.length; ++i) {
-    const delim = i + 1 < text.length ? text[i] + text[i + 1] : undefined;
-    if (delim == undefined || !DELIMITERS.includes(delim)) {
+    const delim = getDelimInPos(text, i);
+    if (delim == undefined) {
       if (currentTree == undefined) currentTree = new Node("text", [""]);
       currentTree.add(text[i]);
       continue;
     }
 
-    i += 1; // we have already detect the delim, so skip it
+    i += delim.length - 1; // we have already detect the delim, so skip it
     if (currentTree != undefined && currentTree.markdown == "text") {
       trees.push(currentTree);
       currentTree = undefined;
@@ -159,6 +168,18 @@ export function renderMarkdown(
   return trees.map((t) => t.render(type, postProcess));
 }
 
+function getDelimInPos(text: string, index: number) {
+  const twoLenDelim =
+    index + 1 < text.length ? text[index] + text[index + 1] : undefined;
+  if (twoLenDelim != undefined && DELIMITERS.includes(twoLenDelim))
+    return twoLenDelim;
+
+  const singleLenDelim = index < text.length ? text[index] : undefined;
+  if (singleLenDelim != undefined && DELIMITERS.includes(singleLenDelim))
+    return singleLenDelim;
+  return undefined;
+}
+
 function getMarkdownType(delim: string): Node["markdown"] {
   switch (delim) {
     case BOLD:
@@ -167,6 +188,8 @@ function getMarkdownType(delim: string): Node["markdown"] {
       return "italic";
     case BREAKTHROUGH:
       return "breakthrough";
+    case CODE:
+      return "code";
     default:
       return "text";
   }
