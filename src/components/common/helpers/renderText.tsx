@@ -20,6 +20,7 @@ import { IS_EMOJI_SUPPORTED } from '../../../util/windowEnvironment';
 
 import MentionLink from '../../middle/message/MentionLink';
 import SafeLink from '../SafeLink';
+import { renderMarkdown } from './renderMarkdown';
 
 export type TextFilter = (
   'escape_html' | 'hq_emoji' | 'emoji' | 'emoji_html' | 'br' | 'br_html' | 'highlight' | 'links' |
@@ -278,32 +279,8 @@ function replaceSimpleMarkdown(
       return result;
     }
 
-    const parts = part.split(SIMPLE_MARKDOWN_REGEX);
-    const entities: string[] = part.match(SIMPLE_MARKDOWN_REGEX) || [];
-    result.push(postProcess(parts[0]));
-
-    return entities.reduce((entityResult: TextPart[], entity, i) => {
-      if (type === 'jsx') {
-        entityResult.push(
-          entity.startsWith('**')
-            ? <b>{postProcess(entity.replace(/\*\*/g, ''))}</b>
-            : <i>{postProcess(entity.replace(/__/g, ''))}</i>,
-        );
-      } else {
-        entityResult.push(
-          entity.startsWith('**')
-            ? `<b>${entity.replace(/\*\*/g, '')}</b>`
-            : `<i>${entity.replace(/__/g, '')}</i>`,
-        );
-      }
-
-      const index = i * 2 + 2;
-      if (parts[index]) {
-        entityResult.push(postProcess(parts[index]));
-      }
-
-      return entityResult;
-    }, result);
+    const entityResult = renderMarkdown(part, type, postProcess);
+    return [...result, ...entityResult];
   }, []);
 }
 
