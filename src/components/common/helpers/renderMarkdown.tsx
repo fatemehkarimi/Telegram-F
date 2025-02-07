@@ -4,7 +4,7 @@ import React, { type TeactNode } from "../../../lib/teact/teact";
 class Node {
   private isClosed: boolean = false;
   constructor(
-    public markdown: "bold" | "italic" | "underline" | "text",
+    public markdown: "bold" | "italic" | "breakthrough" | "text",
     public children: (Node | string)[] | null
   ) {
     if (markdown == "text") this.isClosed = true;
@@ -87,8 +87,12 @@ class Node {
         return isJSX ? <b>{childrenResult}</b> : `<b>${childrenResult}</b>`;
       case "italic":
         return isJSX ? <i>{childrenResult}</i> : `<i>${childrenResult}</i>`;
-      case "underline":
-        return isJSX ? <u>{childrenResult}</u> : `<u>${childrenResult}</u>`;
+      case "breakthrough":
+        return isJSX ? (
+          <del>{childrenResult}</del>
+        ) : (
+          `<del>${childrenResult}</del>`
+        );
       default:
         return isJSX ? <>{childrenResult}</> : `${childrenResult}`;
     }
@@ -100,8 +104,8 @@ class Node {
         return BOLD;
       case "italic":
         return ITALIC;
-      case "underline":
-        return UNDERLINE;
+      case "breakthrough":
+        return BREAKTHROUGH;
       default:
         return "";
     }
@@ -110,8 +114,8 @@ class Node {
 
 const BOLD = "**";
 const ITALIC = "__";
-const UNDERLINE = "~~";
-const DELIMITERS = [BOLD, ITALIC, UNDERLINE];
+const BREAKTHROUGH = "~~";
+const DELIMITERS = [BOLD, ITALIC, BREAKTHROUGH];
 export function renderMarkdown(
   text: string,
   type: "html" | "jsx",
@@ -161,8 +165,8 @@ function getMarkdownType(delim: string): Node["markdown"] {
       return "bold";
     case ITALIC:
       return "italic";
-    case UNDERLINE:
-      return "underline";
+    case BREAKTHROUGH:
+      return "breakthrough";
     default:
       return "text";
   }
