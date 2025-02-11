@@ -119,15 +119,15 @@ export default function useEmojiTooltip(
 
     if (atIndex !== -1) {
       const emojiHtml = typeof emoji === 'string' ? renderText(emoji, ['emoji_html']) : buildCustomEmojiHtml(emoji);
-      setHtml(`${html.substring(0, atIndex)}${emojiHtml}`);
 
+      const selection = document.getSelection();
+      if(selection) selection.modify('extend', 'backward', 'character');
+      window.document.execCommand('insertHTML', false, `${emojiHtml}`);
       const messageInput = inputId === EDITABLE_INPUT_ID
-        ? document.querySelector<HTMLDivElement>(EDITABLE_INPUT_CSS_SELECTOR)!
-        : document.getElementById(inputId) as HTMLDivElement;
+      ? document.querySelector<HTMLDivElement>(EDITABLE_INPUT_CSS_SELECTOR)!
+      : document.getElementById(inputId) as HTMLDivElement;
 
-      requestNextMutation(() => {
-        focusEditableElement(messageInput, true, true);
-      });
+      messageInput.dispatchEvent(new Event('input', { bubbles: true }))
     }
 
     updateFiltered(MEMO_EMPTY_ARRAY);

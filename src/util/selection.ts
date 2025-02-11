@@ -1,3 +1,5 @@
+import documentFragmentToHTML from "./documentFragmentToHTML";
+
 const extractorEl = document.createElement('div');
 
 export function insertHtmlInSelection(html: string) {
@@ -8,16 +10,8 @@ export function insertHtmlInSelection(html: string) {
     range.deleteContents();
 
     const fragment = range.createContextualFragment(html);
-    const lastInsertedNode = fragment.lastChild;
-    range.insertNode(fragment);
-    if (lastInsertedNode) {
-      range.setStartAfter(lastInsertedNode);
-      range.setEndAfter(lastInsertedNode);
-    } else {
-      range.collapse(false);
-    }
-    selection.removeAllRanges();
-    selection.addRange(range);
+    window.document.execCommand('insertHTML', false, documentFragmentToHTML(fragment));
+    range.collapse(true);
   }
 }
 
