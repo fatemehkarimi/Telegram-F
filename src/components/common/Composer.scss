@@ -617,6 +617,7 @@
     unicode-bidi: plaintext;
     text-align: initial;
     font-size: var(--composer-text-size, 1rem);
+    white-space: pre-wrap;
 
     background: transparent !important;
     border: none !important;

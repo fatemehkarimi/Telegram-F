@@ -10,7 +10,7 @@ import { requestNextMutation } from '../../../../lib/fasterdom/fasterdom';
 import { filterUsersByName, getMainUsername, getUserFirstOrLastName } from '../../../../global/helpers';
 import focusEditableElement from '../../../../util/focusEditableElement';
 import { pickTruthy, unique } from '../../../../util/iteratees';
-import { getCaretPosition, getHtmlBeforeSelection, setCaretPosition } from '../../../../util/selection';
+import { getCaretPosition, getHtmlBeforeSelection, insertHtmlInSelection, setCaretPosition } from '../../../../util/selection';
 import { prepareForRegExp } from '../helpers/prepareForRegExp';
 
 import { useThrottledResolver } from '../../../../hooks/useAsyncResolvers';
@@ -108,25 +108,28 @@ export default function useMentionTooltip(
         >${userFirstOrLastName}</a>`;
 
     const inputEl = inputRef.current!;
+
     const htmlBeforeSelection = getHtmlBeforeSelection(inputEl);
     const fixedHtmlBeforeSelection = cleanWebkitNewLines(htmlBeforeSelection);
     const atIndex = fixedHtmlBeforeSelection.lastIndexOf('@');
     const shiftCaretPosition = (mainUsername ? mainUsername.length + 1 : userFirstOrLastName.length)
       - (fixedHtmlBeforeSelection.length - atIndex);
 
+    const matches = fixedHtmlBeforeSelection.match(RE_USERNAME_SEARCH);
     if (atIndex !== -1) {
-      const newHtml = `${fixedHtmlBeforeSelection.substr(0, atIndex)}${htmlToInsert}&nbsp;`;
-      const htmlAfterSelection = cleanWebkitNewLines(inputEl.innerHTML).substring(fixedHtmlBeforeSelection.length);
-      const caretPosition = getCaretPosition(inputEl);
-      setHtml(`${newHtml}${htmlAfterSelection}`);
+      const match = matches ? matches[0]?.trimStart() : getHtml();
 
-      requestNextMutation(() => {
-        const newCaretPosition = caretPosition + shiftCaretPosition + 1;
-        focusEditableElement(inputEl, forceFocus);
-        if (newCaretPosition >= 0) {
-          setCaretPosition(inputEl, newCaretPosition);
+      const selection = document.getSelection();
+      let counter = 0;
+      while(selection && match && selection.toString() !== match) {
+        if(++counter >= 10000) {
+          throw new Error('too many iterations');
         }
-      });
+        selection.modify('extend', 'backward', 'character');
+      }
+
+      window.document.execCommand('insertHTML', false, `${htmlToInsert} `);
+      inputEl.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
     setFilteredUsers(undefined);
