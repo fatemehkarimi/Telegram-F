@@ -136,6 +136,10 @@ export default function useEmojiTooltip(
       : document.getElementById(inputId) as HTMLDivElement;
 
       messageInput.dispatchEvent(new Event('input', { bubbles: true }))
+
+      requestNextMutation(() => {
+        focusEditableElement(messageInput, true, true);
+      });
     }
 
     updateFiltered(MEMO_EMPTY_ARRAY);

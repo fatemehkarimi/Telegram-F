@@ -111,8 +111,6 @@ export default function useMentionTooltip(
     const htmlBeforeSelection = getHtmlBeforeSelection(inputEl);
     const fixedHtmlBeforeSelection = cleanWebkitNewLines(htmlBeforeSelection);
     const atIndex = fixedHtmlBeforeSelection.lastIndexOf('@');
-    const shiftCaretPosition = (mainUsername ? mainUsername.length + 1 : userFirstOrLastName.length)
-      - (fixedHtmlBeforeSelection.length - atIndex);
 
     const matches = fixedHtmlBeforeSelection.match(RE_USERNAME_SEARCH);
     if (atIndex !== -1) {
@@ -129,6 +127,9 @@ export default function useMentionTooltip(
 
       window.document.execCommand('insertHTML', false, `${htmlToInsert} `);
       inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+      requestNextMutation(() => {
+        focusEditableElement(inputEl, true, true);
+      });
     }
 
     setFilteredUsers(undefined);
