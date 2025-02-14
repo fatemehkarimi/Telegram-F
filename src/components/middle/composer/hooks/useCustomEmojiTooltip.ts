@@ -116,7 +116,11 @@ export default function useCustomEmojiTooltip(
         }
       }
 
-      window.document.execCommand('insertHTML', false, `${buildCustomEmojiHtml(emoji).repeat(counter)}`);
+      let customEmojiStr = '';
+      for(let i = 0; i < counter; ++i) {
+        customEmojiStr += buildCustomEmojiHtml(emoji);
+      }
+      window.document.execCommand('insertHTML', false, `${customEmojiStr}`);
       inputEl.dispatchEvent(new Event('input', { bubbles: true }))
     }
     
