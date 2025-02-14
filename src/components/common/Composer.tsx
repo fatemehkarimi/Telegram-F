@@ -531,8 +531,7 @@ const Composer: FC<OwnProps & StateProps> = ({
         return;
       }
     }
-
-    setHtml(`${getHtml()}${newHtml}`);
+    document.execCommand('insertHTML', false, newHtml);
 
     // If selection is outside of input, set cursor at the end of input
     requestNextMutation(() => {
@@ -640,7 +639,6 @@ const Composer: FC<OwnProps & StateProps> = ({
     Boolean(isReady && isOnActiveTab && (isInStoryViewer || isForCurrentMessageList)
       && shouldSuggestStickers && !hasAttachments),
     getHtml,
-    setHtml,
     undefined,
     recentEmojis,
     baseEmojiKeywords,
@@ -655,7 +653,6 @@ const Composer: FC<OwnProps & StateProps> = ({
     Boolean(isReady && isOnActiveTab && (isInStoryViewer || isForCurrentMessageList)
       && shouldSuggestCustomEmoji && !hasAttachments),
     getHtml,
-    setHtml,
     getSelectionRange,
     inputRef,
     customEmojiForEmoji,
@@ -683,7 +680,6 @@ const Composer: FC<OwnProps & StateProps> = ({
   } = useMentionTooltip(
     Boolean(isInMessageList && isReady && isForCurrentMessageList && !hasAttachments),
     getHtml,
-    setHtml,
     getSelectionRange,
     inputRef,
     groupChatMembers,

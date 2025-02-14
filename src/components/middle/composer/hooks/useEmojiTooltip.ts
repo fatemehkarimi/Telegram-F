@@ -59,7 +59,6 @@ try {
 export default function useEmojiTooltip(
   isEnabled: boolean,
   getHtml: Signal<string>,
-  setHtml: (html: string) => void,
   inputId = EDITABLE_INPUT_ID,
   recentEmojiIds: string[],
   baseEmojiKeywords?: Record<string, string[]>,
@@ -121,7 +120,16 @@ export default function useEmojiTooltip(
       const emojiHtml = typeof emoji === 'string' ? renderText(emoji, ['emoji_html']) : buildCustomEmojiHtml(emoji);
 
       const selection = document.getSelection();
-      if(selection) selection.modify('extend', 'backward', 'character');
+      let counter = 0;
+      while(selection != null && !selection.toString().startsWith(":")) {
+        counter += 1;
+        if(counter > 5000) {
+          throw new Error('too many iterations in emoji tooltip');
+          break;
+        }
+        selection.modify('extend', 'backward', 'character');
+      }
+
       window.document.execCommand('insertHTML', false, `${emojiHtml}`);
       const messageInput = inputId === EDITABLE_INPUT_ID
       ? document.querySelector<HTMLDivElement>(EDITABLE_INPUT_CSS_SELECTOR)!
