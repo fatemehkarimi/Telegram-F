@@ -224,7 +224,6 @@ const AttachmentModal: FC<OwnProps & StateProps> = ({
   } = useEmojiTooltip(
     Boolean(isReady && (isForCurrentMessageList || !isForMessage) && renderingIsOpen),
     getHtml,
-    onCaptionUpdate,
     EDITABLE_INPUT_MODAL_ID,
     recentEmojis,
     baseEmojiKeywords,
@@ -238,7 +237,6 @@ const AttachmentModal: FC<OwnProps & StateProps> = ({
   } = useCustomEmojiTooltip(
     Boolean(isReady && (isForCurrentMessageList || !isForMessage) && renderingIsOpen && shouldSuggestCustomEmoji),
     getHtml,
-    onCaptionUpdate,
     getSelectionRange,
     inputRef,
     customEmojiForEmoji,
@@ -252,7 +250,6 @@ const AttachmentModal: FC<OwnProps & StateProps> = ({
   } = useMentionTooltip(
     Boolean(isReady && isForCurrentMessageList && renderingIsOpen),
     getHtml,
-    onCaptionUpdate,
     getSelectionRange,
     inputRef,
     groupChatMembers,

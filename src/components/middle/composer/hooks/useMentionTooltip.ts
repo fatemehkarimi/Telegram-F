@@ -31,7 +31,6 @@ try {
 export default function useMentionTooltip(
   isEnabled: boolean,
   getHtml: Signal<string>,
-  setHtml: (html: string) => void,
   getSelectionRange: Signal<Range | undefined>,
   inputRef: RefObject<HTMLDivElement>,
   groupChatMembers?: ApiChatMember[],
@@ -122,8 +121,8 @@ export default function useMentionTooltip(
       const selection = document.getSelection();
       let counter = 0;
       while(selection && match && selection.toString() !== match) {
-        if(++counter >= 10000) {
-          throw new Error('too many iterations');
+        if(++counter >= 5000) {
+          throw new Error('too many iterations in mention tooltip');
         }
         selection.modify('extend', 'backward', 'character');
       }

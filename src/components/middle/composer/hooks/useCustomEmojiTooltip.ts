@@ -26,7 +26,6 @@ const RE_ENDS_ON_EMOJI_IMG = new RegExp(`${EMOJI_IMG_REGEX.source}$`, 'g');
 export default function useCustomEmojiTooltip(
   isEnabled: boolean,
   getHtml: Signal<string>,
-  setHtml: (html: string) => void,
   getSelectionRange: Signal<Range | undefined>,
   inputRef: RefObject<HTMLDivElement>,
   customEmojis?: ApiSticker[],
@@ -71,22 +70,56 @@ export default function useCustomEmojiTooltip(
 
   const insertCustomEmoji = useLastCallback((emoji: ApiSticker) => {
     const lastEmoji = getLastEmoji();
-    if (!isEnabled || !lastEmoji) return;
+    if (!isEnabled || !lastEmoji || !inputRef.current) return;
 
     const inputEl = inputRef.current!;
-    const htmlBeforeSelection = getHtmlBeforeSelection(inputEl);
-    const regexText = IS_EMOJI_SUPPORTED
-      ? lastEmoji
-      // Escape regexp special chars
-      : lastEmoji.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-    const regex = new RegExp(`(${regexText})\\1*$`, '');
-    const matched = htmlBeforeSelection.match(regex)![0];
-    const count = matched.length / lastEmoji.length;
-    const newHtml = htmlBeforeSelection.replace(regex, buildCustomEmojiHtml(emoji).repeat(count));
-    const htmlAfterSelection = inputEl.innerHTML.substring(htmlBeforeSelection.length);
 
-    setHtml(`${newHtml}${htmlAfterSelection}`);
+    const selection = window.document.getSelection();
+    if(selection != null && selection.rangeCount > 0) {
+      let counter = 0;
+      while(counter < 5000) {
+        counter += 1;
+        if(counter > 5000) {
+          throw Error('too many iterations');
+        }
 
+        const clonedRange = selection.getRangeAt(0).cloneRange();
+        selection.modify('extend', 'backward', 'character');
+        let invalidSelection = false;
+
+        // text is selected
+        if(selection.toString() != "") {
+          invalidSelection = true;
+        }
+
+        // children is not emoji anymore
+        const range = selection.getRangeAt(0);
+        const fragment = range.cloneContents();
+        if(fragment.children.length > 0 && fragment.children[0].tagName != "IMG") {
+          invalidSelection = true;
+        }
+        
+        // emojis are different or is a custom emoji
+        const firstChild = fragment.children[0] as HTMLImageElement;
+        const lastChild = fragment.children[fragment.children.length - 1] as HTMLImageElement
+        if(firstChild.alt != lastChild.alt || firstChild.className.includes('cutom-emoji')) {
+          invalidSelection = true;
+        }
+
+
+        const isEverythingSeleted = clonedRange.cloneContents().children.length == fragment.children.length;
+        if(invalidSelection || isEverythingSeleted) {
+          selection.removeAllRanges();
+          selection.addRange(clonedRange);
+          counter--;
+          break;
+        }
+      }
+
+      window.document.execCommand('insertHTML', false, `${buildCustomEmojiHtml(emoji).repeat(counter)}`);
+      inputEl.dispatchEvent(new Event('input', { bubbles: true }))
+    }
+    
     requestNextMutation(() => {
       focusEditableElement(inputEl, true, true);
     });
