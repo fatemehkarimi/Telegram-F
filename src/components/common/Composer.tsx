@@ -173,6 +173,7 @@ import Spinner from '../ui/Spinner';
 import Avatar from './Avatar';
 import Icon from './icons/Icon';
 import ReactionAnimatedEmoji from './reactions/ReactionAnimatedEmoji';
+import Feditor, { FeditorHandle } from './feditor/Feditor';
 
 import './Composer.scss';
 
@@ -418,6 +419,7 @@ const Composer: FC<OwnProps & StateProps> = ({
 
   // eslint-disable-next-line no-null/no-null
   const inputRef = useRef<HTMLDivElement>(null);
+  const feditorRef = useRef<FeditorHandle>(null);
 
   // eslint-disable-next-line no-null/no-null
   const storyReactionRef = useRef<HTMLButtonElement>(null);
@@ -606,6 +608,10 @@ const Composer: FC<OwnProps & StateProps> = ({
     setIsViewOnceEnabled,
     toogleViewOnceEnabled,
   } = useVoiceRecording();
+
+  const handleSelectEmoji = useLastCallback((emoji: string) => {
+    feditorRef.current?.insertEmoji(emoji);
+  });
 
   const shouldSendRecordingStatus = isForCurrentMessageList && !isInStoryViewer;
   useInterval(() => {
@@ -1655,6 +1661,7 @@ const Composer: FC<OwnProps & StateProps> = ({
         onAttachmentsUpdate={handleSetAttachments}
         onCustomEmojiSelect={handleCustomEmojiSelectAttachmentModal}
         onRemoveSymbol={removeSymbolAttachmentModal}
+        // onEmojiSelect={handleSelectEmoji}
         onEmojiSelect={insertTextAndUpdateCursorAttachmentModal}
         editingMessage={editingMessage}
         onSendWhenOnline={handleSendWhenOnline}
@@ -1813,6 +1820,7 @@ const Composer: FC<OwnProps & StateProps> = ({
               onCustomEmojiSelect={handleCustomEmojiSelect}
               onRemoveSymbol={removeSymbol}
               onEmojiSelect={insertTextAndUpdateCursor}
+              // onEmojiSelect={handleSelectEmoji}
               closeBotCommandMenu={closeBotCommandMenu}
               closeSendAsMenu={closeSendAsMenu}
               isSymbolMenuForced={isSymbolMenuForced}
@@ -1822,6 +1830,7 @@ const Composer: FC<OwnProps & StateProps> = ({
               forceDarkTheme={isInStoryViewer}
             />
           )}
+          {/* <Feditor apiRef={feditorRef} /> */}
           <MessageInput
             ref={inputRef}
             id={inputId}
